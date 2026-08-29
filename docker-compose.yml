@@ -1,0 +1,24 @@
+services:
+  verifier:
+    build: .
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  # lets the container reach Ollama on the host (Linux); no-op on Mac/Windows
+    environment:
+      - OLLAMA_HOST=http://host.docker.internal:11434
+      - OLLAMA_MODEL=llama3.2:3b
+    volumes:
+      - ./evidence:/app/evidence
+      - ./test_cases:/app/test_cases
+    command: python evaluate.py
+
+  baseline:
+    build: .
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      - OLLAMA_HOST=http://host.docker.internal:11434
+      - OLLAMA_MODEL=llama3.2:3b
+    volumes:
+      - ./evidence:/app/evidence
+      - ./test_cases:/app/test_cases
+    command: python baseline.py --all
