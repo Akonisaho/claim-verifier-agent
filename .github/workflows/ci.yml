@@ -96,7 +96,9 @@ jobs:
           ignore-unfixed: "true"
 
       - name: Smoke test the built image
-        run: docker run --rm research-claim-verifier:ci python -c "import app; print('image runs OK')"
+        # Phase 1 snapshot: only baseline.py exists yet (app.py/evaluate.py
+        # land in Phase 2). This checks what this branch actually ships.
+        run: docker run --rm research-claim-verifier:ci python -c "import baseline; print('image runs OK')"
 
   submission-completeness:
     name: Submission Completeness Check
