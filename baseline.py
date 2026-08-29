@@ -47,7 +47,14 @@ def call_ollama(prompt: str, retries: int = 3, timeout: int = 120) -> str:
         try:
             resp = requests.post(
                 f"{OLLAMA_HOST}/api/generate",
-                json={"model": OLLAMA_MODEL, "prompt": prompt, "stream": False},
+                json={
+                    "model": OLLAMA_MODEL,
+                    "prompt": prompt,
+                    "stream": False,
+                    # temperature 0 (+ fixed seed): verdicts must be
+                    # reproducible run-to-run, not just plausible-sounding.
+                    "options": {"temperature": 0, "seed": 42},
+                },
                 timeout=timeout,
             )
             resp.raise_for_status()

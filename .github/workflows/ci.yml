@@ -62,7 +62,7 @@ jobs:
         run: docker build -t research-claim-verifier:ci .
 
       - name: Trivy vulnerability scan (image)
-        uses: aquasecurity/trivy-action@0.24.0
+        uses: aquasecurity/trivy-action@v0.24.0
         with:
           image-ref: "research-claim-verifier:ci"
           severity: "CRITICAL,HIGH"
@@ -70,7 +70,7 @@ jobs:
           format: "table"
 
       - name: Trivy license scan (image)
-        uses: aquasecurity/trivy-action@0.24.0
+        uses: aquasecurity/trivy-action@v0.24.0
         with:
           image-ref: "research-claim-verifier:ci"
           scanners: "license"
