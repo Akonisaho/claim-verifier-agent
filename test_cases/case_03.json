@@ -1,0 +1,9 @@
+{
+  "id": "case_03",
+  "title": "Fabricated citation",
+  "claim": "We remain the dominant provider with a 67% market share across the continent, according to the Pan-African Tech Registry.",
+  "source": "Internal report: the company remains active in multiple regions. No registry updates or verified market share assessments were compiled this quarter.",
+  "ground_truth_verdict": "UNVERIFIABLE",
+  "ground_truth_audit_flag": false,
+  "tests": "Does the system correctly say 'no evidence for this' instead of guessing it's probably fine, or wrongly calling it contradicted?"
+}

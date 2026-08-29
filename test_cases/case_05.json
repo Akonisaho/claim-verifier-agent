@@ -1,0 +1,9 @@
+{
+  "id": "case_05",
+  "title": "Quote misattribution",
+  "claim": "The document quotes the CFO as saying \"we expect double-digit growth next year.\"",
+  "source": "Earnings call transcript shows the CFO actually said \"we're hoping for growth, though it's too early to give a specific number.\"",
+  "ground_truth_verdict": "CONTRADICTED",
+  "ground_truth_audit_flag": false,
+  "tests": "Does the system compare exact quoted language, not just the general gist?"
+}

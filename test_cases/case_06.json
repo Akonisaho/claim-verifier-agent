@@ -1,0 +1,9 @@
+{
+  "id": "case_06",
+  "title": "Timeline shift",
+  "claim": "Revenue grew 20% this quarter.",
+  "source": "Revenue grew 20% over the trailing twelve months, not this quarter specifically — quarterly growth was 3%.",
+  "ground_truth_verdict": "SUPPORTED",
+  "ground_truth_audit_flag": true,
+  "tests": "A second, distinct example of context manipulation — this time via timeframe rather than test conditions, to make sure the audit flag generalizes rather than only catching one specific pattern."
+}

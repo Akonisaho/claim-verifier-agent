@@ -1,0 +1,9 @@
+{
+  "id": "case_09",
+  "title": "Partially correct, partially wrong compound claim (hard case)",
+  "claim": "Revenue grew 15% and headcount decreased by 10% this year, showing improved efficiency.",
+  "source": "Revenue grew 15% this year. Headcount increased by 4% this year.",
+  "ground_truth_verdict": "CONTRADICTED",
+  "ground_truth_audit_flag": false,
+  "tests": "This is the required 'challenging case.' A compound claim with one true and one false part is genuinely tricky — does atomic extraction correctly split this into two separate claims and verify each on its own, or does it average into a wrong overall 'mostly true' verdict?"
+}
