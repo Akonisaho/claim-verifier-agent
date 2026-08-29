@@ -87,6 +87,18 @@ steps are plain HTTP calls to a local, free, open-weight model served via
 free to run, and free for anyone to reproduce — no API key, no billing
 account, no signup required anywhere in this project.
 
+### Optional web UI
+A thin local Flask page over the same pipeline — no new verification logic,
+just a form: paste (or drag-and-drop a `.txt`/`.pdf`/`.docx` file for) a
+claim and its source material, and see the baseline and verifier results
+side by side.
+
+```bash
+pip install -r requirements.txt
+python web/server.py
+# then open http://127.0.0.1:5000
+```
+
 ## What this system does not do
 - Does not determine intent — it never concludes "this is fraud" or
   "someone lied," only "this doesn't match the source" or "context was
