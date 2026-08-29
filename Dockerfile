@@ -2,6 +2,11 @@
 
 FROM python:3.12-slim
 
+# Pick up any OS-package security patches Debian has released since this
+# base image was built (e.g. openssl/libssl) - caught by a real Trivy scan,
+# not applied blindly.
+RUN apt-get update && apt-get upgrade -y && rm -rf /var/lib/apt/lists/*
+
 # Security: run as non-root user, not root (basic hardening, cheap to add,
 # checked by container scanners)
 RUN useradd --create-home --uid 1000 appuser
