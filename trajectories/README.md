@@ -28,6 +28,7 @@ able to follow the reasoning without replaying the whole session.
 | [01-phase1-baseline.md](01-phase1-baseline.md) | Repo discovery, git/GitHub setup, Ollama install, real baseline run |
 | [02-phase2-verifier-and-ci.md](02-phase2-verifier-and-ci.md) | Building app.py, finding and fixing the extraction bug and the non-determinism bug, then the Docker/Trivy CI investigation |
 | [03-phase3-hardening.md](03-phase3-hardening.md) | Retry test coverage, the `.venv312` Docker leak, real docker-compose reproduction |
+| [04-phase4-frontend.md](04-phase4-frontend.md) | The Flask web UI and a real `web/app.py` vs. root `app.py` module-collision bug |
 
 ## How this maps to the rest of the submission
 
