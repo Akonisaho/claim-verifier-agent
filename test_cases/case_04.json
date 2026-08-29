@@ -1,0 +1,9 @@
+{
+  "id": "case_04",
+  "title": "Correct claim, no issues",
+  "claim": "Customer support response times improved to under 2 hours on average in Q3.",
+  "source": "Support operations report: average first-response time in Q3 was 1 hour 48 minutes, down from 3 hours 10 minutes in Q2.",
+  "ground_truth_verdict": "SUPPORTED",
+  "ground_truth_audit_flag": false,
+  "tests": "A clean, easy positive case — the system shouldn't over-flag things that are genuinely fine."
+}

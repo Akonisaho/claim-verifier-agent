@@ -1,0 +1,9 @@
+{
+  "id": "case_07",
+  "title": "Population/scope shift",
+  "claim": "94% of our customers are satisfied with the product.",
+  "source": "94% of customers who responded to our optional survey (12% of total customers) rated the product positively.",
+  "ground_truth_verdict": "SUPPORTED",
+  "ground_truth_audit_flag": true,
+  "tests": "A third context-manipulation pattern — the scope/population was narrowed but the claim implies the full population."
+}

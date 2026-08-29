@@ -1,0 +1,9 @@
+{
+  "id": "case_08",
+  "title": "Vague, unverifiable forward-looking claim",
+  "claim": "We expect to be the market leader within five years.",
+  "source": "Quarterly company report covering financial results and operations, with no forward-looking projections included.",
+  "ground_truth_verdict": "UNVERIFIABLE",
+  "ground_truth_audit_flag": false,
+  "tests": "Does the system correctly treat a prediction as unverifiable rather than trying to force a supported/contradicted verdict onto opinion?"
+}

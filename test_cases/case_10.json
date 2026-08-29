@@ -1,0 +1,9 @@
+{
+  "id": "case_10",
+  "title": "Correct quote, correctly attributed",
+  "claim": "The document quotes the CEO saying \"our top priority remains customer trust.\"",
+  "source": "Press release containing that exact quote, attributed to the CEO.",
+  "ground_truth_verdict": "SUPPORTED",
+  "ground_truth_audit_flag": false,
+  "tests": "Another clean positive control case for quotes specifically."
+}

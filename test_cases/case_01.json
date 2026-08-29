@@ -1,0 +1,9 @@
+{
+  "id": "case_01",
+  "title": "Flipped statistic",
+  "claim": "Our operational adjustments worked flawlessly, with total enterprise churn decreasing by 14% year-over-year.",
+  "source": "Corporate audit log: total annual churn spiked from 10% up to 24% over the fiscal period.",
+  "ground_truth_verdict": "CONTRADICTED",
+  "ground_truth_audit_flag": false,
+  "tests": "Does the system catch a direct factual reversal, not just a missing fact?"
+}

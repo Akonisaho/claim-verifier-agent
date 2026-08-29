@@ -1,0 +1,9 @@
+{
+  "id": "case_02",
+  "title": "Deceptive context (the key case)",
+  "claim": "Our enterprise threat prevention suite verified a flawless 99.8% catch rate out of the box during production runs.",
+  "source": "SecOps whitepaper: the system achieved a 99.8% catch rate exclusively inside a static 100-file sandbox environment, but failed live wild variants.",
+  "ground_truth_verdict": "SUPPORTED",
+  "ground_truth_audit_flag": true,
+  "tests": "This is the core differentiator. A baseline comparing numbers alone will likely just say 'supported' and stop there. The verifier should separately flag that the framing is misleading even though the number matches."
+}
