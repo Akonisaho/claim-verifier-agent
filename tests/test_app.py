@@ -1,8 +1,14 @@
-"""Unit tests for app.py — parsing, extraction fallback, and roll-up logic.
+"""Unit tests for app.py — parsing, extraction fallback, roll-up, and retries.
 
-No network/Ollama calls: these test the pure functions. Real model output
-is covered by evaluate.py's evidence/results.md, generated from an actual run.
+No real network/Ollama calls: these test the pure functions and the retry
+behavior against a mocked requests.post. Real model output is covered by
+evaluate.py's evidence/results.md, generated from an actual run.
 """
+from unittest.mock import patch
+
+import pytest
+import requests
+
 import app
 
 
@@ -75,3 +81,38 @@ def test_rollup_audit_flag_true_if_any_claim_flagged():
 def test_load_test_cases_finds_all_ten():
     cases = app.load_test_cases()
     assert len(cases) == 10
+
+
+class _FakeResponse:
+    def __init__(self, payload):
+        self._payload = payload
+
+    def raise_for_status(self):
+        pass
+
+    def json(self):
+        return self._payload
+
+
+def test_call_ollama_retries_then_succeeds():
+    calls = {"n": 0}
+
+    def flaky_post(*args, **kwargs):
+        calls["n"] += 1
+        if calls["n"] < 2:
+            raise requests.ConnectionError("connection refused")
+        return _FakeResponse({"response": "CLAIM: revenue grew 15%"})
+
+    with patch("app.requests.post", side_effect=flaky_post):
+        result = app.call_ollama("prompt", retries=3)
+
+    assert result == "CLAIM: revenue grew 15%"
+    assert calls["n"] == 2
+
+
+def test_call_ollama_raises_after_exhausting_retries():
+    with (
+        patch("app.requests.post", side_effect=requests.Timeout("timed out")),
+        pytest.raises(RuntimeError, match="failed after 2 attempts"),
+    ):
+        app.call_ollama("prompt", retries=2)

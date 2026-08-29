@@ -1,9 +1,15 @@
-"""Unit tests for baseline.py — parsing and test-case loading only.
+"""Unit tests for baseline.py — parsing, test-case loading, and retry logic.
 
-No network/Ollama calls here: these test the pure functions (prompt
-parsing, test case loading), not the model itself. Real model output is
-covered by evaluate.py's evidence/results.md, generated from an actual run.
+No real network/Ollama calls here: these test the pure functions (prompt
+parsing, test case loading) and the retry behavior against a mocked
+requests.post. Real model output is covered by evaluate.py's
+evidence/results.md, generated from an actual run.
 """
+from unittest.mock import patch
+
+import pytest
+import requests
+
 import baseline
 
 
@@ -38,3 +44,42 @@ def test_build_prompt_includes_claim_and_source():
     prompt = baseline.build_prompt("claim text", "source text")
     assert "claim text" in prompt
     assert "source text" in prompt
+
+
+class _FakeResponse:
+    def __init__(self, payload):
+        self._payload = payload
+
+    def raise_for_status(self):
+        pass
+
+    def json(self):
+        return self._payload
+
+
+def test_call_ollama_retries_then_succeeds():
+    """A transient failure followed by a good response should still
+    return the model's output, not raise."""
+    calls = {"n": 0}
+
+    def flaky_post(*args, **kwargs):
+        calls["n"] += 1
+        if calls["n"] < 2:
+            raise requests.ConnectionError("connection refused")
+        return _FakeResponse({"response": "VERDICT: SUPPORTED"})
+
+    with patch("baseline.requests.post", side_effect=flaky_post):
+        result = baseline.call_ollama("prompt", retries=3)
+
+    assert result == "VERDICT: SUPPORTED"
+    assert calls["n"] == 2
+
+
+def test_call_ollama_raises_after_exhausting_retries():
+    """Every attempt failing should raise RuntimeError, not hang or
+    silently swallow the error."""
+    with (
+        patch("baseline.requests.post", side_effect=requests.Timeout("timed out")),
+        pytest.raises(RuntimeError, match="failed after 2 attempts"),
+    ):
+        baseline.call_ollama("prompt", retries=2)

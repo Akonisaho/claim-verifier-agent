@@ -9,7 +9,7 @@ services:
     volumes:
       - ./evidence:/app/evidence
       - ./test_cases:/app/test_cases
-    command: python evaluate.py
+    command: python app.py --all
 
   baseline:
     build: .

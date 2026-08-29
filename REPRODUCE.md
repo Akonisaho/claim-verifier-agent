@@ -18,6 +18,13 @@ images in one step.
 - [Ollama](https://ollama.com) installed (free, no account needed) —
   this is what actually runs the model, entirely locally
 
+**If you just installed Ollama and `setup.sh` says `ollama: command not
+found`:** this is a real, well-known Windows/PATH quirk, not a bug in this
+script. The installer updates your PATH, but any terminal already open
+(including one an editor is running inside) was handed a copy of PATH at
+the moment it started and won't see the update. Close that terminal, open
+a new one, and re-run `./setup.sh`.
+
 ## What each command does
 
 ### Setup
@@ -34,7 +41,8 @@ changing `OLLAMA_MODEL` in `docker-compose.yml` — no code changes needed.
 docker compose run baseline
 ```
 Expected: a plain verdict per test case, no structured extraction, no
-context-audit flag. Runtime: under 1 minute on CPU, faster with a GPU.
+context-audit flag. Runtime measured on CPU (no GPU) for all 10 cases:
+~4-6.5 minutes. Meaningfully faster with a GPU.
 
 ### Run the full verifier
 ```bash
@@ -42,7 +50,9 @@ docker compose run verifier
 ```
 Expected: for each test case, the extracted atomic claims, then a
 structured verdict (SUPPORTED / CONTRADICTED / UNVERIFIABLE) with a
-context_audit_flag and source quotes. Runtime: 1-3 minutes.
+context_audit_flag and source quotes. Runtime measured on CPU for all 10
+cases: ~19-23 minutes (two model calls per claim - extraction, then
+verify+audit - so this takes noticeably longer than the baseline).
 
 ### Run the full evaluation (baseline vs. verifier, all 10 cases)
 ```bash
@@ -50,6 +60,8 @@ docker compose run verifier python evaluate.py
 ```
 Expected: a results table comparing both against the ground truth in
 `test_cases/test_case_definitions.md`, saved to `evidence/results.md`.
+Runs both of the above back to back, so budget their combined time
+(~25-30 minutes on CPU).
 
 ## No-Docker fallback
 If you'd rather not use Docker at all:
