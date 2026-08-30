@@ -16,7 +16,10 @@ just a style preference.
 """
 from __future__ import annotations
 
+import io
+import json
 import sys
+from datetime import UTC, datetime
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -24,7 +27,7 @@ sys.path.insert(0, str(REPO_ROOT))
 
 import docx  # python-docx
 import pdfplumber
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, send_file
 from werkzeug.datastructures import FileStorage
 
 import app as verifier  # the verifier pipeline (app.py at repo root)
@@ -108,6 +111,74 @@ def run_verifier(claim: str, source: str) -> dict:
             for cv in claim_verdicts
         ],
     }
+
+
+def build_docx_report(
+    claim: str, source: str, baseline_result: dict, verifier_result: dict
+) -> io.BytesIO:
+    """Builds a Word (.docx) report of one verify result. python-docx is
+    already a dependency (used to read .docx uploads) - no new dependency
+    needed for this."""
+    document = docx.Document()
+    document.add_heading("Claim Verifier — Results", level=1)
+    generated = datetime.now(UTC).strftime("%Y-%m-%d %H:%M UTC")
+    document.add_paragraph(f"Generated {generated}")
+
+    document.add_heading("Input", level=2)
+    document.add_paragraph("Claim:", style="Intense Quote")
+    document.add_paragraph(claim)
+    document.add_paragraph("Source:", style="Intense Quote")
+    document.add_paragraph(source)
+
+    document.add_heading("Baseline", level=2)
+    p = document.add_paragraph()
+    p.add_run(baseline_result["verdict"]).bold = True
+    document.add_paragraph(baseline_result["reasoning"])
+
+    document.add_heading("Verifier", level=2)
+    p = document.add_paragraph()
+    p.add_run(verifier_result["verdict"]).bold = True
+    if verifier_result["context_audit_flag"]:
+        p.add_run("  [context audit flagged]").italic = True
+
+    for c in verifier_result["claims"]:
+        document.add_heading(c["claim"], level=3)
+        p = document.add_paragraph()
+        p.add_run(c["verdict"]).bold = True
+        if c["context_audit_flag"]:
+            p.add_run("  [audit]").italic = True
+        quote_p = document.add_paragraph()
+        quote_p.add_run(f"Source quote: “{c['source_quote']}”").italic = True
+        document.add_paragraph(c["reasoning"])
+
+    buf = io.BytesIO()
+    document.save(buf)
+    buf.seek(0)
+    return buf
+
+
+@flask_app.route("/export", methods=["POST"])
+def export():
+    """Downloads the just-computed results (posted back as hidden form
+    fields from verify.html) as a Word document."""
+    claim = request.form.get("claim", "")
+    source = request.form.get("source", "")
+    baseline_result = {
+        "verdict": request.form.get("baseline_verdict", ""),
+        "reasoning": request.form.get("baseline_reasoning", ""),
+    }
+    verifier_result = {
+        "verdict": request.form.get("verifier_verdict", ""),
+        "context_audit_flag": request.form.get("verifier_audit_flag") == "true",
+        "claims": json.loads(request.form.get("claims_json", "[]")),
+    }
+    buf = build_docx_report(claim, source, baseline_result, verifier_result)
+    return send_file(
+        buf,
+        as_attachment=True,
+        download_name="claim-verifier-results.docx",
+        mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    )
 
 
 @flask_app.route("/", methods=["GET"])

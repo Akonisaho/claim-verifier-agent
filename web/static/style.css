@@ -62,7 +62,7 @@ a { color: var(--accent); }
 }
 
 main {
-  max-width: 900px;
+  max-width: clamp(700px, 65vw, 1000px);
   margin: -2rem auto 0;
   padding: 0 1.5rem 5rem;
   position: relative;
@@ -215,6 +215,7 @@ button[type="submit"]:disabled { opacity: 0.5; cursor: wait; }
   letter-spacing: 0.08em;
   color: var(--muted);
 }
+.export-form { margin: 0; }
 .export-btn {
   background: transparent;
   color: var(--accent);

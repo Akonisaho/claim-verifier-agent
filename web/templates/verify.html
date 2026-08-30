@@ -63,11 +63,18 @@
       {% if baseline_result and verifier_result %}
       <div class="results-header">
         <span class="results-label">Results</span>
-        <button type="button" class="export-btn" id="export-button">Download results (.md)</button>
+        <form method="post" action="/export" class="export-form">
+          <input type="hidden" name="claim" value="{{ claim }}">
+          <input type="hidden" name="source" value="{{ source }}">
+          <input type="hidden" name="baseline_verdict" value="{{ baseline_result.verdict }}">
+          <input type="hidden" name="baseline_reasoning" value="{{ baseline_result.reasoning }}">
+          <input type="hidden" name="verifier_verdict" value="{{ verifier_result.verdict }}">
+          <input type="hidden" name="verifier_audit_flag" value="{{ verifier_result.context_audit_flag|lower }}">
+          <input type="hidden" name="claims_json" value='{{ verifier_result.claims|tojson }}'>
+          <button type="submit" class="export-btn">Download results (.docx)</button>
+        </form>
       </div>
-      <section class="results" id="results-section"
-        data-claim="{{ claim|e }}"
-        data-source="{{ source|e }}">
+      <section class="results" id="results-section">
         <div class="result-col">
           <h2>Baseline</h2>
           <p class="verdict verdict-{{ baseline_result.verdict|lower }}">{{ baseline_result.verdict }}</p>
@@ -111,50 +118,6 @@
       document.getElementById("verify-button").disabled = true;
       document.getElementById("pending-note").classList.add("visible");
     });
-
-    // Export: builds a markdown report from what's already rendered on the
-    // page (no server round-trip) and downloads it as a real file.
-    const exportButton = document.getElementById("export-button");
-    if (exportButton) {
-      exportButton.addEventListener("click", () => {
-        const section = document.getElementById("results-section");
-        const cols = section.querySelectorAll(".result-col");
-        const baselineCol = cols[0];
-        const verifierCol = cols[1];
-
-        const baselineVerdict = baselineCol.querySelector(".verdict").textContent.trim();
-        const baselineReasoning = baselineCol.querySelector(".reasoning").textContent.trim();
-
-        const verifierVerdict = verifierCol.querySelector(".verdict").textContent.trim();
-
-        const claimCards = verifierCol.querySelectorAll(".claim-card");
-        let claimsMd = "";
-        claimCards.forEach((card) => {
-          const text = card.querySelector(".claim-text").textContent.trim();
-          const verdict = card.querySelector(".verdict").textContent.trim();
-          const quote = card.querySelector(".source-quote").textContent.trim();
-          const reasoning = card.querySelector(".reasoning").textContent.trim();
-          claimsMd += `\n- **Claim:** ${text}\n  - Verdict: ${verdict}\n  - Source quote: ${quote}\n  - Reasoning: ${reasoning}\n`;
-        });
-
-        const timestamp = new Date().toISOString();
-        const md = `# Claim Verifier — Results\n\n` +
-          `Generated ${timestamp}\n\n` +
-          `## Input\n\n**Claim:**\n${section.dataset.claim}\n\n**Source:**\n${section.dataset.source}\n\n` +
-          `## Baseline\n\n${baselineVerdict}\n\n${baselineReasoning}\n\n` +
-          `## Verifier\n\n${verifierVerdict}\n${claimsMd}\n`;
-
-        const blob = new Blob([md], { type: "text/markdown" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `claim-verifier-results-${Date.now()}.md`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-      });
-    }
   </script>
 </body>
 </html>
