@@ -140,4 +140,7 @@ def verify():
 
 
 if __name__ == "__main__":
-    flask_app.run(debug=False, host="127.0.0.1", port=5000)
+    # threaded=True: a single real verification call can take minutes (CPU
+    # inference). Without this, Flask's dev server is single-threaded and
+    # a second request (even just reloading the page) queues behind it.
+    flask_app.run(debug=False, host="127.0.0.1", port=5000, threaded=True)

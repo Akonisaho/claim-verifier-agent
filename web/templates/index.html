@@ -6,26 +6,27 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <main>
+  <div class="band">
     <h1>Claim Verifier</h1>
-    <p class="subtitle">
-      Paste a document claim and its source material — or drop a
-      .txt / .pdf / .docx file for either — and see the baseline
-      (single-prompt) fact-check side by side with the verifier
-      (atomic extraction + context audit).
+    <p class="tagline">
+      Paste a claim and its source material — or drop a .txt / .pdf / .docx
+      file for either — and see the baseline fact-check next to the
+      atomic-extraction + context-audit verifier.
     </p>
+  </div>
 
+  <main>
     {% if error %}
       <div class="alert">{{ error }}</div>
     {% endif %}
 
-    <form method="post" action="/verify" enctype="multipart/form-data" class="verify-form">
+    <form method="post" action="/verify" enctype="multipart/form-data" class="verify-form" id="verify-form">
       <div class="field-pair">
         <div class="field">
           <label for="claim">Document claim</label>
           <textarea id="claim" name="claim" rows="6"
             placeholder="Paste the claim text here...">{{ claim or "" }}</textarea>
-          <div class="dropzone" data-target="claim_file">
+          <div class="dropzone" data-target="claim_file" tabindex="0">
             <input type="file" id="claim_file" name="claim_file" accept=".txt,.pdf,.docx" hidden>
             <span class="dropzone-label">Drag &amp; drop a .txt / .pdf / .docx, or click to choose</span>
             <span class="dropzone-filename"></span>
@@ -36,7 +37,7 @@
           <label for="source">Source material</label>
           <textarea id="source" name="source" rows="6"
             placeholder="Paste the source material here...">{{ source or "" }}</textarea>
-          <div class="dropzone" data-target="source_file">
+          <div class="dropzone" data-target="source_file" tabindex="0">
             <input type="file" id="source_file" name="source_file" accept=".txt,.pdf,.docx" hidden>
             <span class="dropzone-label">Drag &amp; drop a .txt / .pdf / .docx, or click to choose</span>
             <span class="dropzone-filename"></span>
@@ -44,7 +45,13 @@
         </div>
       </div>
 
-      <button type="submit">Verify</button>
+      <div class="form-footer">
+        <button type="submit" id="verify-button">Verify</button>
+        <span class="pending-note" id="pending-note">
+          <span class="spinner"></span>
+          Verifying — real model calls on CPU can take 1–3 minutes. Please don't close or refresh this tab.
+        </span>
+      </div>
     </form>
 
     {% if baseline_result and verifier_result %}
@@ -60,7 +67,7 @@
         <p class="verdict verdict-{{ verifier_result.verdict|lower }}">
           {{ verifier_result.verdict }}
           {% if verifier_result.context_audit_flag %}
-            <span class="audit-flag">⚠ context audit flagged</span>
+            <span class="audit-flag">audit flagged</span>
           {% endif %}
         </p>
         <div class="claims">
@@ -69,7 +76,7 @@
             <p class="claim-text">{{ c.claim }}</p>
             <p class="verdict verdict-{{ c.verdict|lower }}">
               {{ c.verdict }}
-              {% if c.context_audit_flag %}<span class="audit-flag">⚠ audit</span>{% endif %}
+              {% if c.context_audit_flag %}<span class="audit-flag">audit</span>{% endif %}
             </p>
             <p class="source-quote">&ldquo;{{ c.source_quote }}&rdquo;</p>
             <p class="reasoning">{{ c.reasoning }}</p>
@@ -82,5 +89,15 @@
   </main>
 
   <script src="{{ url_for('static', filename='dropzone.js') }}"></script>
+  <script>
+    // Real pending-state feedback: a genuine verification call takes real
+    // minutes on CPU. Without this, a slow response looks identical to a
+    // broken page, and the natural reaction (re-click, refresh) collides
+    // with the in-flight request instead of just waiting for it.
+    document.getElementById("verify-form").addEventListener("submit", () => {
+      document.getElementById("verify-button").disabled = true;
+      document.getElementById("pending-note").classList.add("visible");
+    });
+  </script>
 </body>
 </html>
