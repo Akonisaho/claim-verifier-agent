@@ -7,58 +7,48 @@ are *technically true but deceptively framed*.
 ---
 
 ## Table of contents
-- [Who has this problem](#who-has-this-problem)
-- [The bottleneck](#the-bottleneck)
-- [Why it matters](#why-it-matters)
-- [Domain](#domain)
-- [AI agent disclosure](#ai-agent-disclosure)
-- [What existed before vs. what I built](#what-existed-before-vs-what-i-built)
-- [How it works](#how-it-works)
-- [What this system does not do](#what-this-system-does-not-do)
-- [Baseline vs. this system](#baseline-vs-this-system)
-- [Results](#results)
-- [Relevance](#relevance)
-- [Improvement changelog](#improvement-changelog)
-- [Reproduction](#reproduction)
-- [Security](#security)
+- [🎯 The problem](#-the-problem)
+- [🏦 Domain](#-domain)
+- [🤖 AI agent disclosure](#-ai-agent-disclosure)
+- [🧱 What existed before vs. what I built](#-what-existed-before-vs-what-i-built)
+- [⚙️ How it works](#️-how-it-works)
+- [🚫 What this system does not do](#-what-this-system-does-not-do)
+- [📊 Results](#-results)
+- [📓 Improvement changelog](#-improvement-changelog)
+- [🔁 Reproduction](#-reproduction)
+- [🔒 Security](#-security)
 
 ---
 
-## Who has this problem
+## 🎯 The problem
 Content teams, financial analysts, investor-relations staff, and
-journalists who review corporate documents — earnings summaries, press
-releases, internal reports — for factual accuracy before publication.
+journalists reviewing corporate documents — earnings summaries, press
+releases, internal reports — check each claim against source material by
+eye. The hardest errors to catch aren't outright lies: they're claims that
+are technically true but deceptively framed. A number that's real, but
+whose context (test conditions, time period, population it applies to)
+has been quietly changed or dropped, making an accurate number misleading.
+A tired human reviewer — or a plain AI asked "is this accurate?" — sees
+the number match and waves the claim through. That's exactly the class of
+error that causes real reputational and financial harm: a correct-sounding
+statistic used to imply something the underlying data doesn't support.
 
-## The bottleneck
-A person checking a document for accuracy compares each claim to source
-material by eye. The hardest errors to catch aren't outright lies — they're
-claims that are technically true but deceptively framed: a number that's
-real, but the context around it (test conditions, time period, population
-it applies to) has been quietly changed or dropped, making a correct number
-misleading. A tired human reviewer, or a plain AI asked "is this accurate?",
-tends to see the number match and wave the claim through.
+## 🏦 Domain
+Scoped specifically to **financial and corporate communications** —
+earnings claims, internal metrics, press statements. Chosen deliberately:
+it gives exact, unambiguous ground truth (a number either matches a
+filing/report or it doesn't), and it's one of the domain areas micro1
+itself works in.
 
-## Why it matters
-This is exactly the class of error that causes real reputational and
-financial harm: a correct-sounding statistic used to imply something the
-underlying data doesn't actually support.
+## 🤖 AI agent disclosure
+Built using **Claude Code (Anthropic)** as the coding agent throughout
+development. Representative session trajectories — instructions given,
+actions taken, tool responses, and human review checkpoints — are in
+`trajectories/`, as required by the hackathon rules. The verification
+pipeline itself (`app.py`) runs on a separate, local open-weight model via
+Ollama — see [How it works](#️-how-it-works).
 
-## Domain
-This project is scoped specifically to **financial and corporate
-communications** — earnings claims, internal metrics, press statements.
-This domain was chosen deliberately: it gives exact, unambiguous ground
-truth (numbers either match a filing/report or they don't), and it's one
-of the domain areas micro1 itself works in.
-
-## AI Agent Disclosure
-This project was built using **Claude Code (Anthropic)** as the coding
-agent throughout development. Representative session trajectories —
-instructions given, actions taken, tool responses, and human review
-checkpoints — are included in `trajectories/`, as required by the
-hackathon rules. The verification pipeline itself (`app.py`) runs on a
-separate, local open-weight model via Ollama — see [How it works](#how-it-works).
-
-## What existed before vs. what I built
+## 🧱 What existed before vs. what I built
 | Existed before this project | Built during this project |
 |---|---|
 | Python 3.12, Docker, Docker Compose | The two-step verification pipeline (`app.py`) |
@@ -67,19 +57,23 @@ separate, local open-weight model via Ollama — see [How it works](#how-it-work
 | Pydantic, pytest, ruff, bandit, gitleaks, Trivy, hadolint (all third-party tools) | All 10 test cases and their ground-truth verdicts |
 | Claude Code (coding agent used to build this — see `trajectories/`) | The CI gate configuration, README, changelog, and reproduction guide |
 
-## How it works
-1. **Atomic extraction** — breaks a document into individual, standalone
+## ⚙️ How it works
+**Baseline** (`baseline.py`): one direct prompt — "fact-check this document
+against this source material" — no structural decomposition, no context
+audit.
+
+**This system** (`app.py`):
+1. **Atomic extraction** — splits a document into individual, standalone
    factual claims (numbers, quotes, historical facts) instead of judging
-   the whole document as one blob of text.
-2. **Verification + context audit** — for each claim, compares it against
-   the provided source material and returns a structured verdict:
-   `SUPPORTED`, `CONTRADICTED`, or `UNVERIFIABLE` — plus a separate
-   `context_audit_flag`, set independently, that catches claims where the
-   number is correct but the surrounding context has been altered or
-   omitted.
+   the whole document as one blob.
+2. **Verification + context audit** — for each claim, returns a
+   structured verdict (`SUPPORTED` / `CONTRADICTED` / `UNVERIFIABLE`) plus
+   a separate `context_audit_flag`, decided independently, that catches
+   claims where the number is correct but the surrounding context has
+   been altered or omitted.
 3. **Report** — every verdict includes the source quote it's based on and
    the model's reasoning, so a human editor can check the agent's work
-   rather than simply trusting it.
+   rather than trust it outright.
 
 ```mermaid
 flowchart TB
@@ -106,18 +100,16 @@ flowchart TB
     verifier --> result
 ```
 
-No retrieval framework, vector database, or agent-orchestration library is
-used. Source material is provided directly per case, and both pipeline
-steps are plain HTTP calls to a local, free, open-weight model served via
-[Ollama](https://ollama.com). This keeps the system transparent, auditable,
-free to run, and free for anyone to reproduce — no API key, no billing
-account, no signup required anywhere in this project.
+Both run on the identical set of 10 test cases in `test_cases/`. No
+retrieval framework, vector database, or agent-orchestration library —
+source material is provided directly per case, and both pipelines are
+plain HTTP calls to a local, free, open-weight model served via
+[Ollama](https://ollama.com). No API key, no billing account, no signup
+required anywhere in this project.
 
-### Optional web UI
-A thin local Flask page over the same pipeline — no new verification logic,
-just a form: paste (or drag-and-drop a `.txt`/`.pdf`/`.docx` file for) a
-claim and its source material, and see the baseline and verifier results
-side by side.
+**Optional web UI** — a thin Flask page over the same pipeline (no new
+verification logic): paste, or drag-and-drop a `.txt`/`.pdf`/`.docx` file
+for, a claim and its source, and see baseline vs. verifier side by side.
 
 ```bash
 pip install -r requirements.txt
@@ -125,7 +117,7 @@ python web/server.py
 # then open http://127.0.0.1:5000
 ```
 
-## What this system does not do
+## 🚫 What this system does not do
 - Does not determine intent — it never concludes "this is fraud" or
   "someone lied," only "this doesn't match the source" or "context was
   altered."
@@ -135,19 +127,9 @@ python web/server.py
 - Does not search the open internet for source material — it verifies
   against source material the user explicitly provides.
 
-## Baseline vs. this system
-**Baseline** (`baseline.py`): one direct prompt — "fact-check this document
-against this source material" — no structural decomposition, no separate
-context-audit check.
-
-**This system** (`app.py`): atomic decomposition + a verdict that is forced
-to separate "is the number right" from "is the context around it honest."
-
-Both run on the identical set of 10 test cases in `test_cases/`.
-
-## Results
+## 📊 Results
 Real numbers from the latest `evaluate.py` run, reproduced twice
-(byte-identical, see `evidence/results_run1.md` vs `results_run2.md`):
+(byte-identical — see `evidence/results_run1.md` vs `results_run2.md`):
 
 | | Baseline | Verifier |
 |---|---|---|
@@ -159,22 +141,15 @@ Raw verdict accuracy is tied — the verifier's real advantage is the
 audit-flag dimension the baseline has no mechanism for at all, including
 getting the key differentiator case (deceptive context) fully correct.
 See `evidence/results.md` for the full per-case breakdown, generated by
-actually running `evaluate.py`, not written in advance, and
-`CHANGELOG.md` for the honest iteration-by-iteration story behind these
-numbers.
+actually running `evaluate.py`, not written in advance.
 
-## Relevance
-This is a small, concrete example of the kind of grounding/faithfulness
-evaluation that AI evaluation companies build internally to check whether
-a model's output is actually supported by its source material, rather than
-just plausible-sounding.
+## 📓 Improvement changelog
+See `CHANGELOG.md` for the honest, iteration-by-iteration story behind
+these numbers.
 
-## Improvement changelog
-See `CHANGELOG.md`.
-
-## Reproduction
+## 🔁 Reproduction
 See `REPRODUCE.md`.
 
-## Security
+## 🔒 Security
 See `SECURITY.md` for what each CI gate checks and why its thresholds are
 set the way they are.
