@@ -111,27 +111,33 @@ def run_verifier(claim: str, source: str) -> dict:
 
 
 @flask_app.route("/", methods=["GET"])
-def index():
-    return render_template("index.html")
+def landing():
+    """Cover page: title, thesis, a single 'start verifying' call to action."""
+    return render_template("landing.html")
 
 
-@flask_app.route("/verify", methods=["POST"])
+@flask_app.route("/verify", methods=["GET", "POST"])
 def verify():
+    """The verify page: GET shows the empty form, POST processes it and
+    renders the same template with results."""
+    if request.method == "GET":
+        return render_template("verify.html")
+
     try:
         claim = resolve_input("claim")
         source = resolve_input("source")
     except ExtractionError as exc:
-        return render_template("index.html", error=str(exc)), 400
+        return render_template("verify.html", error=str(exc)), 400
 
     try:
         baseline_result = run_baseline(claim, source)
         verifier_result = run_verifier(claim, source)
     except RuntimeError as exc:
         # Ollama unreachable or failed after retries.
-        return render_template("index.html", error=str(exc)), 502
+        return render_template("verify.html", error=str(exc)), 502
 
     return render_template(
-        "index.html",
+        "verify.html",
         claim=claim,
         source=source,
         baseline_result=baseline_result,

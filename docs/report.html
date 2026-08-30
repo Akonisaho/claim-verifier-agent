@@ -68,7 +68,7 @@
   .topbar nav a { opacity: 0.75; }
   .topbar nav a:hover { opacity: 1; }
 
-  main { max-width: 740px; margin: 0 auto; padding: 3rem 6vw 6rem; }
+  main { max-width: 820px; margin: 0 auto; padding: 3rem 6vw 6rem; }
 
   .entry { margin-bottom: 4rem; scroll-margin-top: 3.5rem; }
   .entry .entry-no {
@@ -81,14 +81,8 @@
 
   hr.rule { border: none; border-top: 1px solid var(--rule); margin: 0 0 2.75rem; }
 
-  .diagram { border: 1px solid var(--rule); background: var(--paper-raised); margin: 1.75rem 0; }
-  .diagram-body { display: grid; grid-template-columns: 1fr auto 1fr; gap: 1rem; align-items: start; padding: 1.5rem; }
-  @media (max-width: 620px) { .diagram-body { grid-template-columns: 1fr; } }
-  .pipeline { display: flex; flex-direction: column; gap: 0; }
-  .pipeline-label { font-family: ui-monospace, monospace; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 0.5rem; text-align: center; }
-  .pstep { border: 1px solid var(--rule); padding: 0.55rem 0.7rem; font-size: 0.8rem; text-align: center; background: var(--paper); }
-  .parrow { text-align: center; color: var(--muted); font-size: 0.85rem; padding: 0.15rem 0; }
-  .swap-col { display: flex; align-items: center; justify-content: center; font-family: ui-monospace, monospace; font-size: 0.7rem; color: var(--muted); writing-mode: vertical-rl; padding-top: 2rem; }
+  .diagram { border: 1px solid var(--rule); background: var(--paper-raised); margin: 1.75rem 0; overflow-x: auto; }
+  .diagram pre.mermaid { margin: 0; padding: 1.5rem; }
   .diagram figcaption { font-family: ui-monospace, monospace; font-size: 0.7rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); text-align: center; padding: 0.6rem 0; border-top: 1px solid var(--rule); }
 
   .ledger-wrap { overflow-x: auto; }
@@ -186,23 +180,35 @@
       (<code class="inline">llama3.2:3b</code>) served via Ollama.
     </p>
     <figure class="diagram">
-      <div class="diagram-body">
-        <div class="pipeline">
-          <div class="pipeline-label">baseline.py</div>
-          <div class="pstep">Single prompt:<br>"fact-check this against the source"</div>
-          <div class="parrow">↓</div>
-          <div class="pstep">Verdict:<br>SUPPORTED / CONTRADICTED / UNVERIFIABLE</div>
-        </div>
-        <div class="swap-col">document claim + source material</div>
-        <div class="pipeline">
-          <div class="pipeline-label">app.py</div>
-          <div class="pstep">1. Atomic extraction<br>(split into standalone claims)</div>
-          <div class="parrow">↓</div>
-          <div class="pstep">2. Per-claim verify + context audit<br>(verdict AND audit_flag, decided independently)</div>
-          <div class="parrow">↓</div>
-          <div class="pstep">3. Roll-up<br>any CONTRADICTED wins &gt; any UNVERIFIABLE &gt; else SUPPORTED<br>audit_flag = True if ANY claim flagged</div>
-        </div>
-      </div>
+      <pre class="mermaid">
+%%{init: {'theme':'base', 'themeVariables': {
+  'primaryColor': '#ffffff', 'primaryTextColor': '#1c1f1c',
+  'primaryBorderColor': '#3f5d47', 'lineColor': '#3f5d47',
+  'secondaryColor': '#f7f5ef', 'tertiaryColor': '#f7f5ef'
+}}}%%
+flowchart TB
+    doc["Document claim + source material"]
+
+    subgraph baseline["baseline.py"]
+        direction TB
+        B1["Single prompt:\n'fact-check this against the source'"]
+        B2["Verdict:\nSUPPORTED / CONTRADICTED / UNVERIFIABLE"]
+        B1 --> B2
+    end
+
+    subgraph verifier["app.py"]
+        direction TB
+        V1["1. Atomic extraction\n(split into standalone claims)"]
+        V2["2. Per-claim verify + context audit\n(verdict AND audit_flag, decided independently)"]
+        V3["3. Roll-up\nany CONTRADICTED wins &gt; any UNVERIFIABLE &gt; else SUPPORTED\naudit_flag = True if ANY claim flagged"]
+        V1 --> V2 --> V3
+    end
+
+    doc --> baseline
+    doc --> verifier
+    baseline --> result["Report: verdict + source quote + reasoning\n(human reviews, nothing auto-published)"]
+    verifier --> result
+      </pre>
       <figcaption>Fig. 1 — Baseline vs. verifier pipeline. Both report a verdict + source quote + reasoning for human review; neither publishes or acts on its own.</figcaption>
     </figure>
     <h3>What it does not do</h3>
@@ -424,5 +430,20 @@
   </div>
 
 </main>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: "base",
+    themeVariables: {
+      primaryColor: "#ffffff",
+      primaryTextColor: "#1c1f1c",
+      primaryBorderColor: "#3f5d47",
+      lineColor: "#3f5d47",
+      secondaryColor: "#f7f5ef",
+      tertiaryColor: "#f7f5ef"
+    }
+  });
+</script>
 </body>
 </html>

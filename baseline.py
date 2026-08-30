@@ -53,7 +53,14 @@ def call_ollama(prompt: str, retries: int = 3, timeout: int = 120) -> str:
                     "stream": False,
                     # temperature 0 (+ fixed seed): verdicts must be
                     # reproducible run-to-run, not just plausible-sounding.
-                    "options": {"temperature": 0, "seed": 42},
+                    # num_predict: bounds how long a single call can run -
+                    # without it, a rambling completion has no hard stop.
+                    "options": {"temperature": 0, "seed": 42, "num_predict": 200},
+                    # keep the model loaded between calls - reloading it
+                    # from disk (measured: ~11s) otherwise repeats on every
+                    # single request once Ollama's default idle timeout
+                    # unloads it.
+                    "keep_alive": "30m",
                 },
                 timeout=timeout,
             )
