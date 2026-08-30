@@ -61,3 +61,5 @@ def test_verify_get_renders_empty_form():
     resp = client.get("/verify")
     assert resp.status_code == 200
     assert b'action="/verify"' in resp.data
+    # No results yet on a fresh GET, so no export button either.
+    assert b'id="export-button"' not in resp.data
