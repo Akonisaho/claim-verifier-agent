@@ -47,3 +47,19 @@ def test_extract_text_empty_docx_raises(tmp_path):
         fs = _file_storage("empty.docx", f.read())
     with pytest.raises(web_app.ExtractionError):
         web_app.extract_text_from_file(fs)
+
+
+def test_landing_page_links_to_verify():
+    client = web_app.flask_app.test_client()
+    resp = client.get("/")
+    assert resp.status_code == 200
+    assert b'href="/verify"' in resp.data
+
+
+def test_verify_get_renders_empty_form():
+    client = web_app.flask_app.test_client()
+    resp = client.get("/verify")
+    assert resp.status_code == 200
+    assert b'action="/verify"' in resp.data
+    # No results yet on a fresh GET, so no export button either.
+    assert b'id="export-button"' not in resp.data

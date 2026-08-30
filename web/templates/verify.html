@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Claim Verifier — Verify</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&display=swap">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="band">
+    <a class="back-link" href="/">&larr; Claim Verifier</a>
+    <h1>Verify a claim</h1>
+    <p class="tagline">
+      Paste a claim and its source material — or drop a .txt / .pdf / .docx
+      file for either — and see the baseline fact-check next to the
+      atomic-extraction + context-audit verifier.
+    </p>
+  </div>
+
+  <main>
+    <div class="panel">
+      {% if error %}
+        <div class="alert">{{ error }}</div>
+      {% endif %}
+
+      <form method="post" action="/verify" enctype="multipart/form-data" class="verify-form" id="verify-form">
+        <div class="field-pair">
+          <div class="field">
+            <label for="claim">Document claim</label>
+            <textarea id="claim" name="claim" rows="6"
+              placeholder="Paste the claim text here...">{{ claim or "" }}</textarea>
+            <div class="dropzone" data-target="claim_file" tabindex="0">
+              <input type="file" id="claim_file" name="claim_file" accept=".txt,.pdf,.docx" hidden>
+              <span class="dropzone-label">Drag &amp; drop a .txt / .pdf / .docx, or click to choose</span>
+              <span class="dropzone-filename"></span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="source">Source material</label>
+            <textarea id="source" name="source" rows="6"
+              placeholder="Paste the source material here...">{{ source or "" }}</textarea>
+            <div class="dropzone" data-target="source_file" tabindex="0">
+              <input type="file" id="source_file" name="source_file" accept=".txt,.pdf,.docx" hidden>
+              <span class="dropzone-label">Drag &amp; drop a .txt / .pdf / .docx, or click to choose</span>
+              <span class="dropzone-filename"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-footer">
+          <button type="submit" id="verify-button">Verify</button>
+          <span class="pending-note" id="pending-note">
+            <span class="spinner"></span>
+            Verifying — real model calls on CPU can take 1–3 minutes. Please don't close or refresh this tab.
+          </span>
+        </div>
+      </form>
+
+      {% if baseline_result and verifier_result %}
+      <div class="results-header">
+        <span class="results-label">Results</span>
+        <button type="button" class="export-btn" id="export-button">Download results (.md)</button>
+      </div>
+      <section class="results" id="results-section"
+        data-claim="{{ claim|e }}"
+        data-source="{{ source|e }}">
+        <div class="result-col">
+          <h2>Baseline</h2>
+          <p class="verdict verdict-{{ baseline_result.verdict|lower }}">{{ baseline_result.verdict }}</p>
+          <p class="reasoning">{{ baseline_result.reasoning }}</p>
+        </div>
+
+        <div class="result-col">
+          <h2>Verifier</h2>
+          <p class="verdict verdict-{{ verifier_result.verdict|lower }}">
+            {{ verifier_result.verdict }}
+            {% if verifier_result.context_audit_flag %}
+              <span class="audit-flag">audit flagged</span>
+            {% endif %}
+          </p>
+          <div class="claims">
+            {% for c in verifier_result.claims %}
+            <div class="claim-card">
+              <p class="claim-text">{{ c.claim }}</p>
+              <p class="verdict verdict-{{ c.verdict|lower }}">
+                {{ c.verdict }}
+                {% if c.context_audit_flag %}<span class="audit-flag">audit</span>{% endif %}
+              </p>
+              <p class="source-quote">&ldquo;{{ c.source_quote }}&rdquo;</p>
+              <p class="reasoning">{{ c.reasoning }}</p>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </section>
+      {% endif %}
+    </div>
+  </main>
+
+  <script src="{{ url_for('static', filename='dropzone.js') }}"></script>
+  <script>
+    // Real pending-state feedback: a genuine verification call takes real
+    // minutes on CPU. Without this, a slow response looks identical to a
+    // broken page, and the natural reaction (re-click, refresh) collides
+    // with the in-flight request instead of just waiting for it.
+    document.getElementById("verify-form").addEventListener("submit", () => {
+      document.getElementById("verify-button").disabled = true;
+      document.getElementById("pending-note").classList.add("visible");
+    });
+
+    // Export: builds a markdown report from what's already rendered on the
+    // page (no server round-trip) and downloads it as a real file.
+    const exportButton = document.getElementById("export-button");
+    if (exportButton) {
+      exportButton.addEventListener("click", () => {
+        const section = document.getElementById("results-section");
+        const cols = section.querySelectorAll(".result-col");
+        const baselineCol = cols[0];
+        const verifierCol = cols[1];
+
+        const baselineVerdict = baselineCol.querySelector(".verdict").textContent.trim();
+        const baselineReasoning = baselineCol.querySelector(".reasoning").textContent.trim();
+
+        const verifierVerdict = verifierCol.querySelector(".verdict").textContent.trim();
+
+        const claimCards = verifierCol.querySelectorAll(".claim-card");
+        let claimsMd = "";
+        claimCards.forEach((card) => {
+          const text = card.querySelector(".claim-text").textContent.trim();
+          const verdict = card.querySelector(".verdict").textContent.trim();
+          const quote = card.querySelector(".source-quote").textContent.trim();
+          const reasoning = card.querySelector(".reasoning").textContent.trim();
+          claimsMd += `\n- **Claim:** ${text}\n  - Verdict: ${verdict}\n  - Source quote: ${quote}\n  - Reasoning: ${reasoning}\n`;
+        });
+
+        const timestamp = new Date().toISOString();
+        const md = `# Claim Verifier — Results\n\n` +
+          `Generated ${timestamp}\n\n` +
+          `## Input\n\n**Claim:**\n${section.dataset.claim}\n\n**Source:**\n${section.dataset.source}\n\n` +
+          `## Baseline\n\n${baselineVerdict}\n\n${baselineReasoning}\n\n` +
+          `## Verifier\n\n${verifierVerdict}\n${claimsMd}\n`;
+
+        const blob = new Blob([md], { type: "text/markdown" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `claim-verifier-results-${Date.now()}.md`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      });
+    }
+  </script>
+</body>
+</html>

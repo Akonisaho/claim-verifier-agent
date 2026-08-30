@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Claim Verifier</title>
+<meta name="description" content="An agent that checks factual claims in corporate documents against source material, and catches claims that are technically true but deceptively framed.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&display=swap">
+<style>
+  :root {
+    --band-bg: #16261e;
+    --band-fg: #c9a961;
+    --paper: #f7f5ef;
+    --ink: #1c1f1c;
+    --muted: #5f6b62;
+    --rule: rgba(201,169,97,0.25);
+    --accent: #c9a961;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--band-bg);
+    color: var(--band-fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  h1, h2 { font-family: "Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  code, .mono { font-family: ui-monospace, "SF Mono", "Cascadia Code", "Segoe UI Mono", Consolas, monospace; }
+
+  .cover {
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 4vh 8vw;
+  }
+  .cover-inner {
+    width: 100%;
+    max-width: 1120px;
+    margin: 0 auto;
+  }
+  .credit {
+    font-family: ui-monospace, monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(201,169,97,0.65);
+    margin-bottom: 1.75rem;
+  }
+  h1 {
+    font-weight: 700;
+    font-size: clamp(2.4rem, 6.5vw, 4.6rem);
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    margin: 0 0 1.1rem;
+    max-width: 15ch;
+    color: #fdf8ec;
+  }
+  .subtitle {
+    font-size: clamp(1rem, 1.8vw, 1.2rem);
+    line-height: 1.6;
+    color: rgba(201,169,97,0.92);
+    max-width: 56ch;
+    margin: 0 0 2.5rem;
+  }
+  .subtitle em { color: #fdf8ec; font-style: normal; font-weight: 600; }
+
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    max-width: 640px;
+    margin-bottom: 2.5rem;
+  }
+  .metric { background: rgba(0,0,0,0.15); padding: 0.9rem 1rem; }
+  .metric .value { font-family: ui-monospace, monospace; font-size: 1.4rem; font-weight: 600; color: #fdf8ec; }
+  .metric .label { font-size: 0.7rem; color: rgba(201,169,97,0.7); margin-top: 0.2rem; }
+
+  .cta-row { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+  .cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: var(--band-fg);
+    color: var(--band-bg);
+    font-weight: 700;
+    font-family: "Montserrat", sans-serif;
+    font-size: 0.92rem;
+    padding: 0.75rem 1.6rem;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: transform 0.12s, opacity 0.12s;
+  }
+  .cta:hover { opacity: 0.9; transform: translateY(-1px); }
+  .cta-secondary {
+    color: rgba(201,169,97,0.85);
+    font-family: ui-monospace, monospace;
+    font-size: 0.85rem;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(201,169,97,0.4);
+    padding-bottom: 2px;
+  }
+  .cta-secondary:hover { color: #fdf8ec; border-color: #fdf8ec; }
+
+  .foot-meta {
+    margin-top: 2.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--rule);
+    font-family: ui-monospace, monospace;
+    font-size: 0.78rem;
+    color: rgba(201,169,97,0.65);
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+</style>
+</head>
+<body>
+<section class="cover">
+ <div class="cover-inner">
+  <div class="credit">Submitted for the micro1 Frontier Engineering Challenge 2026 · Hosted on HackerEarth</div>
+  <h1>Claim Verifier</h1>
+  <p class="subtitle">
+    An agent that checks factual claims in corporate documents against
+    source material — and catches the failure mode most reviewers miss:
+    claims that are <em>technically true but deceptively framed</em>.
+  </p>
+
+  <div class="metrics">
+    <div class="metric"><div class="value">7/10</div><div class="label">Baseline verdict</div></div>
+    <div class="metric"><div class="value">7/10</div><div class="label">Verifier verdict</div></div>
+    <div class="metric"><div class="value">7/10</div><div class="label">Audit-flag accuracy</div></div>
+    <div class="metric"><div class="value">3×</div><div class="label">Runs, identical result</div></div>
+  </div>
+
+  <div class="cta-row">
+    <a class="cta" href="report.html">Read the full report →</a>
+    <a class="cta-secondary" href="https://github.com/Akonisaho/claim-verifier-agent" target="_blank" rel="noopener">Source repository</a>
+  </div>
+
+  <div class="foot-meta">
+    <span>Domain: financial &amp; corporate communications</span>
+    <span>Standing: CI gate 5/5 · main</span>
+  </div>
+ </div>
+</section>
+</body>
+</html>
