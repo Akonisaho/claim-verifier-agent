@@ -16,76 +16,78 @@
   </div>
 
   <main>
-    {% if error %}
-      <div class="alert">{{ error }}</div>
-    {% endif %}
+    <div class="panel">
+      {% if error %}
+        <div class="alert">{{ error }}</div>
+      {% endif %}
 
-    <form method="post" action="/verify" enctype="multipart/form-data" class="verify-form" id="verify-form">
-      <div class="field-pair">
-        <div class="field">
-          <label for="claim">Document claim</label>
-          <textarea id="claim" name="claim" rows="6"
-            placeholder="Paste the claim text here...">{{ claim or "" }}</textarea>
-          <div class="dropzone" data-target="claim_file" tabindex="0">
-            <input type="file" id="claim_file" name="claim_file" accept=".txt,.pdf,.docx" hidden>
-            <span class="dropzone-label">Drag &amp; drop a .txt / .pdf / .docx, or click to choose</span>
-            <span class="dropzone-filename"></span>
+      <form method="post" action="/verify" enctype="multipart/form-data" class="verify-form" id="verify-form">
+        <div class="field-pair">
+          <div class="field">
+            <label for="claim">Document claim</label>
+            <textarea id="claim" name="claim" rows="6"
+              placeholder="Paste the claim text here...">{{ claim or "" }}</textarea>
+            <div class="dropzone" data-target="claim_file" tabindex="0">
+              <input type="file" id="claim_file" name="claim_file" accept=".txt,.pdf,.docx" hidden>
+              <span class="dropzone-label">Drag &amp; drop a .txt / .pdf / .docx, or click to choose</span>
+              <span class="dropzone-filename"></span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="source">Source material</label>
+            <textarea id="source" name="source" rows="6"
+              placeholder="Paste the source material here...">{{ source or "" }}</textarea>
+            <div class="dropzone" data-target="source_file" tabindex="0">
+              <input type="file" id="source_file" name="source_file" accept=".txt,.pdf,.docx" hidden>
+              <span class="dropzone-label">Drag &amp; drop a .txt / .pdf / .docx, or click to choose</span>
+              <span class="dropzone-filename"></span>
+            </div>
           </div>
         </div>
 
-        <div class="field">
-          <label for="source">Source material</label>
-          <textarea id="source" name="source" rows="6"
-            placeholder="Paste the source material here...">{{ source or "" }}</textarea>
-          <div class="dropzone" data-target="source_file" tabindex="0">
-            <input type="file" id="source_file" name="source_file" accept=".txt,.pdf,.docx" hidden>
-            <span class="dropzone-label">Drag &amp; drop a .txt / .pdf / .docx, or click to choose</span>
-            <span class="dropzone-filename"></span>
+        <div class="form-footer">
+          <button type="submit" id="verify-button">Verify</button>
+          <span class="pending-note" id="pending-note">
+            <span class="spinner"></span>
+            Verifying — real model calls on CPU can take 1–3 minutes. Please don't close or refresh this tab.
+          </span>
+        </div>
+      </form>
+
+      {% if baseline_result and verifier_result %}
+      <section class="results">
+        <div class="result-col">
+          <h2>Baseline</h2>
+          <p class="verdict verdict-{{ baseline_result.verdict|lower }}">{{ baseline_result.verdict }}</p>
+          <p class="reasoning">{{ baseline_result.reasoning }}</p>
+        </div>
+
+        <div class="result-col">
+          <h2>Verifier</h2>
+          <p class="verdict verdict-{{ verifier_result.verdict|lower }}">
+            {{ verifier_result.verdict }}
+            {% if verifier_result.context_audit_flag %}
+              <span class="audit-flag">audit flagged</span>
+            {% endif %}
+          </p>
+          <div class="claims">
+            {% for c in verifier_result.claims %}
+            <div class="claim-card">
+              <p class="claim-text">{{ c.claim }}</p>
+              <p class="verdict verdict-{{ c.verdict|lower }}">
+                {{ c.verdict }}
+                {% if c.context_audit_flag %}<span class="audit-flag">audit</span>{% endif %}
+              </p>
+              <p class="source-quote">&ldquo;{{ c.source_quote }}&rdquo;</p>
+              <p class="reasoning">{{ c.reasoning }}</p>
+            </div>
+            {% endfor %}
           </div>
         </div>
-      </div>
-
-      <div class="form-footer">
-        <button type="submit" id="verify-button">Verify</button>
-        <span class="pending-note" id="pending-note">
-          <span class="spinner"></span>
-          Verifying — real model calls on CPU can take 1–3 minutes. Please don't close or refresh this tab.
-        </span>
-      </div>
-    </form>
-
-    {% if baseline_result and verifier_result %}
-    <section class="results">
-      <div class="result-col">
-        <h2>Baseline</h2>
-        <p class="verdict verdict-{{ baseline_result.verdict|lower }}">{{ baseline_result.verdict }}</p>
-        <p class="reasoning">{{ baseline_result.reasoning }}</p>
-      </div>
-
-      <div class="result-col">
-        <h2>Verifier</h2>
-        <p class="verdict verdict-{{ verifier_result.verdict|lower }}">
-          {{ verifier_result.verdict }}
-          {% if verifier_result.context_audit_flag %}
-            <span class="audit-flag">audit flagged</span>
-          {% endif %}
-        </p>
-        <div class="claims">
-          {% for c in verifier_result.claims %}
-          <div class="claim-card">
-            <p class="claim-text">{{ c.claim }}</p>
-            <p class="verdict verdict-{{ c.verdict|lower }}">
-              {{ c.verdict }}
-              {% if c.context_audit_flag %}<span class="audit-flag">audit</span>{% endif %}
-            </p>
-            <p class="source-quote">&ldquo;{{ c.source_quote }}&rdquo;</p>
-            <p class="reasoning">{{ c.reasoning }}</p>
-          </div>
-          {% endfor %}
-        </div>
-      </div>
-    </section>
-    {% endif %}
+      </section>
+      {% endif %}
+    </div>
   </main>
 
   <script src="{{ url_for('static', filename='dropzone.js') }}"></script>
