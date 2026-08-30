@@ -4,6 +4,11 @@ An agent that checks factual claims in corporate documents against source
 material — and catches the failure mode most reviewers miss: claims that
 are *technically true but deceptively framed*.
 
+📖 [Documentation hub](docs/index.html) — a single-page account of the
+problem, architecture, real test results, and reproducibility (open
+`docs/index.html` directly in a browser, or enable GitHub Pages on this
+repo to view it hosted).
+
 ---
 
 ## Table of contents
