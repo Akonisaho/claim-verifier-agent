@@ -19,6 +19,7 @@ from __future__ import annotations
 import io
 import json
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -95,7 +96,13 @@ def run_baseline(claim: str, source: str) -> dict:
 
 def run_verifier(claim: str, source: str) -> dict:
     atomic_claims = verifier.extract_claims(claim)
-    claim_verdicts = [verifier.verify_claim(c.text, source) for c in atomic_claims]
+    # Each claim's verify+audit call is independent (same source, no shared
+    # state) - dispatch them to Ollama concurrently instead of one at a time.
+    # Same calls, same parsing, just not serialized; order is preserved.
+    with ThreadPoolExecutor(max_workers=len(atomic_claims)) as pool:
+        claim_verdicts = list(
+            pool.map(lambda c: verifier.verify_claim(c.text, source), atomic_claims)
+        )
     doc_verdict, audit_flag = verifier.rollup(claim_verdicts)
     return {
         "verdict": doc_verdict,
@@ -201,8 +208,13 @@ def verify():
         return render_template("verify.html", error=str(exc)), 400
 
     try:
-        baseline_result = run_baseline(claim, source)
-        verifier_result = run_verifier(claim, source)
+        # Baseline and verifier don't depend on each other - run them
+        # concurrently instead of back-to-back.
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            baseline_future = pool.submit(run_baseline, claim, source)
+            verifier_future = pool.submit(run_verifier, claim, source)
+            baseline_result = baseline_future.result()
+            verifier_result = verifier_future.result()
     except RuntimeError as exc:
         # Ollama unreachable or failed after retries.
         return render_template("verify.html", error=str(exc)), 502
