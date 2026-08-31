@@ -35,8 +35,10 @@
     }
     .cover-inner {
       width: 100%;
-      max-width: clamp(600px, 65vw, 1200px);
-      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
     }
     .eyebrow {
       font-family: ui-monospace, monospace;
@@ -48,23 +50,23 @@
     }
     h1 {
       font-weight: 700;
-      font-size: clamp(2.4rem, 6.5vw, 4.6rem);
-      line-height: 1.05;
+      font-size: clamp(2.8rem, 8vw, 6.5rem);
+      line-height: 1.02;
       letter-spacing: -0.01em;
-      margin: 0 0 1.1rem;
-      max-width: 15ch;
+      margin: 0 0 1.3rem;
+      max-width: 24ch;
       color: #fdf8ec;
     }
     .subtitle {
-      font-size: clamp(1rem, 1.8vw, 1.2rem);
+      font-size: clamp(1.05rem, 2.1vw, 1.4rem);
       line-height: 1.6;
       color: rgba(201,169,97,0.92);
-      max-width: 56ch;
-      margin: 0 0 2.5rem;
+      max-width: 62ch;
+      margin: 0 0 2.75rem;
     }
     .subtitle em { color: #fdf8ec; font-style: normal; font-weight: 600; }
 
-    .cta-row { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+    .cta-row { display: flex; gap: 1rem; align-items: center; justify-content: center; flex-wrap: wrap; }
     .cta {
       display: inline-flex;
       align-items: center;
@@ -97,9 +99,14 @@
       padding-top: 1.5rem;
       border-top: 1px solid var(--rule);
       display: flex;
-      gap: 2.5rem;
+      gap: 3rem;
+      justify-content: center;
       flex-wrap: wrap;
-      max-width: 640px;
+      max-width: 1400px;
+      width: 100%;
+    }
+    .how div {
+      text-align: left;
     }
     .how div span {
       display: block;
