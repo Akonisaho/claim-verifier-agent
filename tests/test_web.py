@@ -61,5 +61,34 @@ def test_verify_get_renders_empty_form():
     resp = client.get("/verify")
     assert resp.status_code == 200
     assert b'action="/verify"' in resp.data
-    # No results yet on a fresh GET, so no export button either.
-    assert b'id="export-button"' not in resp.data
+    # No results yet on a fresh GET, so no export form either.
+    assert b'action="/export"' not in resp.data
+
+
+def test_export_returns_a_real_docx():
+    client = web_app.flask_app.test_client()
+    resp = client.post(
+        "/export",
+        data={
+            "claim": "Revenue grew 15% this year.",
+            "source": "Revenue grew 15% this year.",
+            "baseline_verdict": "SUPPORTED",
+            "baseline_reasoning": "The number matches.",
+            "verifier_verdict": "SUPPORTED",
+            "verifier_audit_flag": "false",
+            "claims_json": '[{"claim": "Revenue grew 15% this year.", '
+            '"verdict": "SUPPORTED", "context_audit_flag": false, '
+            '"source_quote": "Revenue grew 15% this year.", '
+            '"reasoning": "Matches."}]',
+        },
+    )
+    assert resp.status_code == 200
+    assert resp.mimetype == (
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    )
+    # A real .docx is a zip archive - starts with the PK signature.
+    assert resp.data[:2] == b"PK"
+    document = docx.Document(io.BytesIO(resp.data))
+    all_text = "\n".join(p.text for p in document.paragraphs)
+    assert "Revenue grew 15% this year." in all_text
+    assert "SUPPORTED" in all_text
