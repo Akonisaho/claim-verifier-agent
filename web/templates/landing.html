@@ -35,6 +35,10 @@
     }
     .cover-inner {
       width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
     }
     .eyebrow {
       font-family: ui-monospace, monospace;
@@ -62,7 +66,7 @@
     }
     .subtitle em { color: #fdf8ec; font-style: normal; font-weight: 600; }
 
-    .cta-row { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+    .cta-row { display: flex; gap: 1rem; align-items: center; justify-content: center; flex-wrap: wrap; }
     .cta {
       display: inline-flex;
       align-items: center;
@@ -96,8 +100,13 @@
       border-top: 1px solid var(--rule);
       display: flex;
       gap: 3rem;
+      justify-content: center;
       flex-wrap: wrap;
       max-width: 1400px;
+      width: 100%;
+    }
+    .how div {
+      text-align: left;
     }
     .how div span {
       display: block;

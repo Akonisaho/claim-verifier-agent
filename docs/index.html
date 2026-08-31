@@ -39,6 +39,10 @@
   }
   .cover-inner {
     width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
   }
   .credit {
     font-family: ui-monospace, monospace;
@@ -73,13 +77,15 @@
     background: var(--rule);
     border: 1px solid var(--rule);
     max-width: 1400px;
-    margin-bottom: 2.5rem;
+    width: 100%;
+    margin: 0 0 2.5rem;
+    text-align: left;
   }
   .metric { background: rgba(0,0,0,0.15); padding: 1.3rem 1.5rem; }
   .metric .value { font-family: ui-monospace, monospace; font-size: 1.9rem; font-weight: 600; color: #fdf8ec; }
   .metric .label { font-size: 0.78rem; color: rgba(201,169,97,0.7); margin-top: 0.3rem; }
 
-  .cta-row { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+  .cta-row { display: flex; gap: 1rem; align-items: center; justify-content: center; flex-wrap: wrap; }
   .cta {
     display: inline-flex;
     align-items: center;
@@ -114,6 +120,8 @@
     color: rgba(201,169,97,0.65);
     display: flex;
     gap: 2rem;
+    justify-content: center;
+    width: 100%;
     flex-wrap: wrap;
   }
 </style>
